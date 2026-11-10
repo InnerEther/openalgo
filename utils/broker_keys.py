@@ -97,6 +97,7 @@ BROKER_NAMES = {
     "nubra": "Nubra",
     "paytm": "Paytm Money",
     "pocketful": "Pocketful",
+    "projectx": "ProjectX",
     "rmoney": "RMoney",
     "rupeezy": "Rupeezy",
     "sahi": "Sahi",

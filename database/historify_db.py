@@ -1631,7 +1631,7 @@ def vacuum_database():
 SUPPORTED_EXCHANGES = [
     "NSE", "BSE", "NFO", "BFO", "MCX", "CDS", "BCD", "NCO",
     "NSE_INDEX", "BSE_INDEX", "MCX_INDEX", "GLOBAL_INDEX",
-    "CRYPTO",
+    "CRYPTO", "CME",
 ]
 
 

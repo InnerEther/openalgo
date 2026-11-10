@@ -120,6 +120,9 @@ from broker.hdfcsecurities.streaming.hdfcsecurities_adapter import (
     HDFCSecuritiesWebSocketAdapter,
 )
 
+# Import the projectx_adapter
+from broker.projectx.streaming.projectx_adapter import ProjectxWebSocketAdapter
+
 # AliceBlue adapter will be loaded dynamically
 
 # Register adapters
@@ -154,6 +157,7 @@ register_adapter("rupeezy", RupeezyWebSocketAdapter)
 register_adapter("sahi", SahiWebSocketAdapter)
 register_adapter("hdfcsky", HDFCSkyWebSocketAdapter)
 register_adapter("hdfcsecurities", HDFCSecuritiesWebSocketAdapter)
+register_adapter("projectx", ProjectxWebSocketAdapter)
 
 # AliceBlue adapter will be registered dynamically when first used
 

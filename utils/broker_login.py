@@ -75,6 +75,7 @@ CALLBACK_START_BROKERS = frozenset(
         "wisdom",
         "zebu",
         "iiflcapital",
+        "projectx",
     }
 )
 

@@ -44,10 +44,16 @@ from utils.position_read import (
 from utils.smart_order_guard import PositionBookCache
 from utils.thread_safe_cache import LockedTTLCache
 
+# Plugins that place no orders at all: their smart order is refused before any
+# position read, so there is no read to fail. test_order_less_plugins_send_nothing
+# holds them to that instead.
+ORDER_LESS = {"projectx"}
+
 BROKERS = sorted(
     name
     for name in os.listdir("broker")
     if os.path.exists(os.path.join("broker", name, "api", "order_api.py"))
+    and name not in ORDER_LESS
 )
 
 FAILURES = ("exception", "http_error", "error_status", "unparseable")
@@ -610,6 +616,35 @@ REQUEST_AWARE = {"groww", "indmoney", "deltaexchange"}
 
 def test_every_broker_plugin_is_covered():
     assert set(SPECS) == set(BROKERS)
+
+
+@pytest.mark.parametrize("broker", sorted(ORDER_LESS))
+def test_order_less_plugins_send_nothing(broker, monkeypatch):
+    module = importlib.import_module(f"broker.{broker}.api.order_api")
+
+    def no_network(*args, **kwargs):
+        raise AssertionError("an order-less plugin must not reach the network")
+
+    monkeypatch.setattr(
+        httpx_client,
+        "get_httpx_client",
+        lambda: SimpleNamespace(get=no_network, post=no_network, request=no_network),
+    )
+    order = {
+        "symbol": "ESZ5",
+        "exchange": "CME",
+        "action": "BUY",
+        "quantity": "1",
+        "position_size": "1",
+        "product": "NRML",
+        "pricetype": "MARKET",
+    }
+
+    res, body, orderid = module.place_smartorder_api(order, "token")
+
+    assert res is not None and res.status != 200
+    assert orderid is None
+    assert body["status"] == "error" and body["message"]
 
 
 class _NoSleep:

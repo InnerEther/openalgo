@@ -774,6 +774,12 @@ def _broker_callback(broker, para=None):
         auth_token, error_message = auth_function(code)
         forward_url = "broker.html"
 
+    elif broker == "projectx":
+        # ProjectX signs in with the saved username and API key; there is
+        # nothing for the trader to enter and no redirect.
+        auth_token, error_message = auth_function("projectx")
+        forward_url = "broker.html"
+
     elif broker == "sahi":
         # Sahi mints the day's token from the API key and secret in the
         # environment; there is nothing for the trader to enter.

@@ -795,6 +795,30 @@ GUIDES = {
         "redirect_hint": "OpenAlgo sends this address with each login. If your broker "
         "app asks for a redirect URL, register this exact address.",
     },
+    "projectx": {
+        "name": "ProjectX",
+        "sign_in": "saved_keys",
+        "fields": (
+            {
+                "hint": "Your ProjectX login name on your prop firm's platform (for "
+                "example TopstepX), not your email address.",
+                "key": "api_key",
+                "label": "Username",
+                "required": True,
+                "secret": False,
+            },
+            {
+                "hint": "The API key generated on your firm's ProjectX dashboard.",
+                "key": "api_secret",
+                "label": "API Key",
+                "required": True,
+                "secret": True,
+            },
+        ),
+        "banner": "Login with ProjectX signs you in with one click using the username "
+        "and API key you saved; there is nothing to type.",
+        "redirect_hint": "",
+    },
     "rmoney": {
         "name": "RMoney",
         "sign_in": "redirect",
