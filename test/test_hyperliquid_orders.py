@@ -7,6 +7,7 @@ replaced, and a test that would send anything unexpected fails.
 """
 
 import json
+import threading
 from decimal import Decimal
 from pathlib import Path
 
@@ -14,7 +15,9 @@ import httpx
 import pytest
 from coincurve import PublicKey
 
+from broker.hyperliquid import network
 from broker.hyperliquid.api import auth_api, client, exchange, order_api, signing
+from broker.hyperliquid.api import data as hl_data
 
 VECTORS = json.loads(
     (Path(__file__).parent / "hyperliquid_signing_vectors.json").read_text(encoding="utf-8")
@@ -138,10 +141,12 @@ class FakeHTTP:
     def __init__(self, answers):
         self.answers = list(answers)
         self.sent = []
+        self.urls = []
 
     def post(self, url, json=None, timeout=None):
-        assert url == exchange.EXCHANGE_URL, url
+        assert url.endswith("/exchange"), url
         assert timeout is not None
+        self.urls.append(url)
         self.sent.append(json)
         answer = self.answers.pop(0)
         if isinstance(answer, Exception):
@@ -160,8 +165,8 @@ def http(monkeypatch, market):
     return install
 
 
-def _signer(payload) -> str:
-    digest = signing.l1_digest(payload["action"], payload["nonce"])
+def _signer(payload, is_mainnet=True) -> str:
+    digest = signing.l1_digest(payload["action"], payload["nonce"], is_mainnet)
     sig = payload["signature"]
     raw = (
         int(sig["r"], 16).to_bytes(32, "big")
@@ -194,6 +199,125 @@ def test_an_order_is_signed_by_the_agent_and_sent_once(http):
     (payload,) = fake.sent
     assert payload["action"]["type"] == "order" and payload["vaultAddress"] is None
     assert _signer(payload) == AGENT
+    assert fake.urls == ["https://api.hyperliquid.xyz/exchange"]
+
+
+def test_the_network_follows_the_testnet_context():
+    assert not client.is_testnet() and client.broker_name() == "hyperliquid"
+    assert client.base_url() == "https://api.hyperliquid.xyz"
+    assert client.ws_url() == "wss://api.hyperliquid.xyz/ws"
+    with network.testnet():
+        assert client.is_testnet() and client.broker_name() == "hyperliquid_testnet"
+        assert client.base_url() == "https://api.hyperliquid-testnet.xyz"
+        assert client.ws_url() == "wss://api.hyperliquid-testnet.xyz/ws"
+    assert not client.is_testnet()
+
+
+def test_a_testnet_call_on_one_thread_leaves_another_on_mainnet():
+    inside, seen = threading.Event(), []
+
+    def mainnet_reader():
+        inside.wait(5)
+        seen.append(client.base_url())
+
+    reader = threading.Thread(target=mainnet_reader)
+    reader.start()
+    with network.testnet():
+        inside.set()
+        reader.join(5)
+    assert seen == ["https://api.hyperliquid.xyz"]
+
+
+def test_testnet_info_requests_go_to_testnet(monkeypatch):
+    urls = []
+
+    class Info:
+        def post(self, url, json=None, timeout=None):
+            urls.append(url)
+            return httpx.Response(200, json={}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(client, "get_httpx_client", lambda: Info())
+    client.post_info({"type": "meta"})
+    network.on_testnet(client.post_info)({"type": "meta"})
+    assert urls == ["https://api.hyperliquid.xyz/info", "https://api.hyperliquid-testnet.xyz/info"]
+
+
+def test_the_testnet_broker_signs_for_testnet_and_sends_there(http):
+    from broker.hyperliquid_testnet.api import order_api as testnet_orders
+
+    fake = http(
+        {
+            "status": "ok",
+            "response": {"type": "order", "data": {"statuses": [{"resting": {"oid": 5}}]}},
+        }
+    )
+    response, _body, oid = testnet_orders.place_order_api(
+        {
+            "symbol": "BTCUSDFUT",
+            "exchange": "CRYPTO",
+            "action": "BUY",
+            "quantity": "0.01",
+            "pricetype": "LIMIT",
+            "price": "70000",
+        },
+        ACCOUNT,
+    )
+    assert (response.status, oid) == (200, "5")
+    assert fake.urls == ["https://api.hyperliquid-testnet.xyz/exchange"]
+    (payload,) = fake.sent
+    # Signed for testnet: the same signature read as a mainnet one names
+    # someone else, which is why each network refuses the other's orders.
+    assert _signer(payload, is_mainnet=False) == AGENT
+    assert _signer(payload, is_mainnet=True) != AGENT
+    assert not client.is_testnet()
+
+
+def test_every_testnet_module_runs_on_testnet(monkeypatch):
+    from broker.hyperliquid.database import master_contract_db as mainnet_mc
+    from broker.hyperliquid.streaming.hyperliquid_adapter import HyperliquidWebSocketAdapter
+    from broker.hyperliquid_testnet.api import auth_api as t_auth
+    from broker.hyperliquid_testnet.api import data as t_data
+    from broker.hyperliquid_testnet.api import funds as t_funds
+    from broker.hyperliquid_testnet.database import master_contract_db as t_mc
+    from broker.hyperliquid_testnet.mapping import order_data as t_map
+    from broker.hyperliquid_testnet.streaming.hyperliquid_testnet_adapter import (
+        Hyperliquid_testnetWebSocketAdapter,
+    )
+
+    networks = []
+
+    def record(*_args, **_kwargs):
+        networks.append(client.broker_name())
+        raise RuntimeError("stop here")
+
+    monkeypatch.setattr(mainnet_mc, "perp_meta_and_contexts", record)
+    monkeypatch.setattr(
+        mainnet_mc, "socketio", type("S", (), {"emit": staticmethod(lambda *a, **k: None)})
+    )
+    t_mc.master_contract_download()
+    mainnet_mc.master_contract_download()
+    assert networks == ["hyperliquid_testnet", "hyperliquid"]
+
+    # The table and the exceptions stay one class on both networks.
+    assert t_mc.SymToken is mainnet_mc.SymToken
+    assert t_auth.authenticate_broker is not auth_api.authenticate_broker
+    assert callable(t_funds.get_margin_data) and callable(t_map.transform_order_data)
+    assert issubclass(t_data.BrokerData, hl_data.BrokerData)
+
+    adapter = Hyperliquid_testnetWebSocketAdapter()
+    adapter.initialize("hyperliquid_testnet", "user")
+    assert adapter.ws_client.url == "wss://api.hyperliquid-testnet.xyz/ws"
+    assert adapter.broker_name == "hyperliquid_testnet"
+    mainnet = HyperliquidWebSocketAdapter()
+    mainnet.initialize("hyperliquid", "user")
+    assert mainnet.ws_client.url == "wss://api.hyperliquid.xyz/ws"
+
+
+def test_the_feed_loader_finds_the_testnet_adapter():
+    from websocket_proxy.broker_factory import _get_adapter_class
+
+    cls = _get_adapter_class("hyperliquid_testnet")
+    assert cls.__name__ == "Hyperliquid_testnetWebSocketAdapter"
 
 
 def test_hyperliquids_refusal_reaches_the_trader(http):
@@ -399,10 +523,22 @@ def test_the_login_checks_the_agent_key(monkeypatch):
     )
     assert "not approved" in auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
     monkeypatch.setattr(auth_api, "post_info", lambda body: {"role": "missing"})
-    assert "not approved" in auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
+    message = auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
+    assert "not approved" in message and "testnet" not in message.lower()
+    from broker.hyperliquid_testnet.api import auth_api as testnet_auth
+
+    assert "app.hyperliquid-testnet.xyz" in testnet_auth.check_agent_key(ACCOUNT, AGENT_KEY)
 
 
 def test_decimal_wire_has_no_exponent():
     assert order_api.wire(Decimal("1E+5")) == "100000"
     assert order_api.wire(Decimal("0.000010")) == "0.00001"
     assert order_api.wire(Decimal("-0")) == "0"
+
+
+def test_an_account_answer_without_positions_is_not_an_empty_book(monkeypatch):
+    monkeypatch.setattr(client, "clearinghouse_state", lambda user: {"error": "bad request"})
+    monkeypatch.setattr(client, "asset_contexts", lambda: {})
+    with pytest.raises(client.HyperliquidError):
+        order_api.get_positions(ACCOUNT, strict=True)
+    assert order_api.get_positions(ACCOUNT)["status"] == "error"

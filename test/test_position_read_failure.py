@@ -20,6 +20,7 @@ broker:
 """
 
 import importlib
+import json
 import os
 import time
 from dataclasses import dataclass, field, replace
@@ -149,6 +150,22 @@ def _delta_book(request, qty):
     return {"success": True, "result": rows}
 
 
+def _hyperliquid_book(request, qty):
+    kind = json.loads(request.content).get("type")
+    if kind == "clearinghouseState":
+        rows = (
+            [] if qty is None else [{"position": {"coin": "BTC", "szi": str(qty), "entryPx": "1"}}]
+        )
+        return {"assetPositions": rows, "marginSummary": {"accountValue": "0"}}
+    if kind == "metaAndAssetCtxs":
+        return [{"universe": [{"name": "BTC", "szDecimals": 5}]}, [{"midPx": "100"}]]
+    return [{"tokens": [], "universe": []}, []]
+
+
+def _hyperliquid_market(symbol, exchange):
+    return "BTC", {"asset": 0, "sz_decimals": 5, "is_spot": False}
+
+
 class _Limiter:
     def acquire(self, *args, **kwargs):
         return None
@@ -237,6 +254,16 @@ SPECS = {
         },
         error={"status": "ERROR", "message": "Session expired"},
         patches={"rate_limited_request": _plain_request},
+    ),
+    "hyperliquid": Spec(
+        path="/info",
+        symbol="BTCUSDFUT",
+        br_symbol="BTC",
+        exchange="CRYPTO",
+        auth="0x" + "ab" * 20,
+        book=_hyperliquid_book,
+        error={"error": "Failed to deserialize the JSON body"},
+        patches={"_market": _hyperliquid_market},
     ),
     "deltaexchange": Spec(
         path="/v2/",
@@ -610,8 +637,13 @@ SPECS = {
 # Dhan's sandbox speaks the same API as Dhan.
 SPECS["dhan_sandbox"] = SPECS["dhan"]
 
+# Hyperliquid Testnet runs the Hyperliquid plugin's code on Hyperliquid's test
+# network, so it reads the same book and is patched where that code lives.
+SPECS["hyperliquid_testnet"] = SPECS["hyperliquid"]
+IMPLEMENTED_IN = {"hyperliquid_testnet": "hyperliquid"}
+
 # Plugins whose book builder needs the request (several calls to one path).
-REQUEST_AWARE = {"groww", "indmoney", "deltaexchange"}
+REQUEST_AWARE = {"groww", "indmoney", "deltaexchange", "hyperliquid", "hyperliquid_testnet"}
 
 
 def test_every_broker_plugin_is_covered():
@@ -719,6 +751,12 @@ def harness(monkeypatch):
     def build(broker, scenario, held=HELD):
         spec = SPECS[broker]
         module = importlib.import_module(f"broker.{broker}.api.order_api")
+        # Patches go where the code runs; the smart order is still placed
+        # through the broker's own module.
+        caller = module
+        module = importlib.import_module(
+            f"broker.{IMPLEMENTED_IN.get(broker, broker)}.api.order_api"
+        )
 
         # Symbol master lookups, everywhere a plugin might reach them.
         import database.token_db as token_db
@@ -757,7 +795,7 @@ def harness(monkeypatch):
                     module, name, LockedTTLCache(maxsize=cache.maxsize, ttl=cache.ttl)
                 )
 
-        h = Harness(broker=broker, spec=spec, module=module, monkeypatch=monkeypatch)
+        h = Harness(broker=broker, spec=spec, module=caller, monkeypatch=monkeypatch)
 
         def place_order_api(order_data, auth):
             h.orders.append((order_data["action"], int(float(order_data["quantity"]))))

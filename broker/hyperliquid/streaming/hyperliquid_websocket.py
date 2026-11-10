@@ -1,4 +1,7 @@
-"""Low-level client for Hyperliquid's public WebSocket (wss://api.hyperliquid.xyz/ws).
+"""Low-level client for Hyperliquid's public WebSocket.
+
+Address: wss://api.hyperliquid.xyz/ws, or the testnet one for the Hyperliquid
+Testnet broker (``network.ws_url``).
 
 Protocol: JSON frames, no authentication for market data.
 
@@ -22,7 +25,7 @@ import time
 
 import websocket
 
-from broker.hyperliquid.api.client import WS_URL
+from broker.hyperliquid.api.client import ws_url
 from utils.logging import get_logger
 
 logger = get_logger("hyperliquid_websocket")
@@ -42,12 +45,12 @@ class HyperliquidWebSocket:
         on_open=None,
         on_close=None,
         on_error=None,
-        url: str = WS_URL,
+        url: str | None = None,
         max_retry_attempt: int = 10,
         retry_delay: int = 2,
         retry_multiplier: int = 2,
     ):
-        self.url = url
+        self.url = url or ws_url()
         self.on_message = on_message or (lambda msg: None)
         self.on_open = on_open or (lambda: None)
         self.on_close = on_close or (lambda: None)

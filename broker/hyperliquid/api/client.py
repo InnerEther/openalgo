@@ -1,7 +1,8 @@
 """Calls to Hyperliquid's public info endpoint.
 
 Everything Hyperliquid serves for market data and for reading an account comes
-from one address, ``POST https://api.hyperliquid.xyz/info``, with a JSON body
+from one address, ``POST https://api.hyperliquid.xyz/info``
+(``api.hyperliquid-testnet.xyz`` for the Hyperliquid Testnet broker), with a JSON body
 whose ``type`` names the request (``metaAndAssetCtxs``, ``l2Book``,
 ``candleSnapshot``, ``clearinghouseState`` and so on). None of it needs a key:
 reading an account only needs its public wallet address.
@@ -16,15 +17,21 @@ import time
 
 import httpx
 
+# Which network a call reaches is decided in broker/hyperliquid/network.py; the
+# names are re-exported here for the modules that already import ``client``.
+from broker.hyperliquid.network import (  # noqa: F401
+    MAINNET_URL,
+    TESTNET_URL,
+    base_url,
+    broker_name,
+    is_testnet,
+    ws_url,
+)
 from utils.httpx_client import get_httpx_client
 from utils.logging import get_logger
 from utils.thread_safe_cache import LockedTTLCache
 
 logger = get_logger(__name__)
-
-BASE_URL = "https://api.hyperliquid.xyz"
-INFO_URL = f"{BASE_URL}/info"
-WS_URL = "wss://api.hyperliquid.xyz/ws"
 
 #: Spot assets are numbered from 10000 in Hyperliquid's asset ids.
 SPOT_ASSET_OFFSET = 10000
@@ -65,7 +72,7 @@ def post_info(payload: dict, timeout: float = 15.0):
     last_error = None
     for attempt in range(1, _MAX_ATTEMPTS + 1):
         try:
-            response = client.post(INFO_URL, json=payload, timeout=timeout)
+            response = client.post(f"{base_url()}/info", json=payload, timeout=timeout)
         except _TRANSIENT_ERRORS as exc:
             last_error = exc
             logger.warning(
@@ -112,7 +119,7 @@ def asset_contexts() -> dict[str, dict]:
     ``prevDayPx``, ``dayBaseVlm`` and ``dayNtlVlm``; perpetuals also carry
     ``openInterest``, ``funding`` and ``oraclePx``.
     """
-    cached = _CONTEXT_CACHE.get("all")
+    cached = _CONTEXT_CACHE.get(base_url())
     if cached is not None:
         return cached
 
@@ -130,7 +137,7 @@ def asset_contexts() -> dict[str, dict]:
         # Perpetual quotes are still good without the spot half.
         logger.exception("Could not load Hyperliquid spot contexts")
 
-    _CONTEXT_CACHE["all"] = out
+    _CONTEXT_CACHE[base_url()] = out
     return out
 
 
@@ -165,10 +172,11 @@ def asset_info(coin: str) -> dict | None:
     Reloaded once when a coin is missing, so a market listed since the last
     load is found.
     """
-    assets = _ASSET_CACHE.get("all")
+    network = base_url()
+    assets = _ASSET_CACHE.get(network)
     if assets is None or coin not in assets:
         assets = _load_assets()
-        _ASSET_CACHE["all"] = assets
+        _ASSET_CACHE[network] = assets
     return assets.get(coin)
 
 

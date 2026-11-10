@@ -30,6 +30,7 @@ need → drill into the specific file. Don't load everything at once.
 | Connecting hosted AI clients through Remote MCP | [userguide/remote-mcp.md](userguide/remote-mcp.md) |
 | Saving broker keys and connecting a broker | [userguide/06-broker-connection/README.md](userguide/06-broker-connection/README.md) |
 | Connecting ProjectX (TopstepX) for CME futures charting | [userguide/06-broker-connection/projectx.md](userguide/06-broker-connection/projectx.md) |
+| Connecting Hyperliquid (crypto perpetuals and spot) and Hyperliquid Testnet | [userguide/06-broker-connection/hyperliquid.md](userguide/06-broker-connection/hyperliquid.md) |
 
 ## Install, deploy & operate
 

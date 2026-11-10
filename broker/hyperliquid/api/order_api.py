@@ -146,6 +146,9 @@ def get_positions(auth, strict=False):
     """Open perpetual positions of the wallet."""
     try:
         state = client.clearinghouse_state(auth)
+        if not isinstance(state, dict) or "assetPositions" not in state:
+            # An answer without the positions list is not an empty book.
+            raise client.HyperliquidError(f"Unexpected account answer: {str(state)[:200]}")
     except client.HyperliquidError:
         logger.exception("Hyperliquid positions unavailable")
         if strict:
@@ -522,12 +525,17 @@ _symbol_locks = SymbolLocks(name="hyperliquid smart orders")
 _position_cache = PositionBookCache()
 
 
+def _position_key(auth: str) -> str:
+    # One wallet address has an account on each network.
+    return f"{client.base_url()} {auth}"
+
+
 def _read_net(symbol: str, exchange: str, auth: str) -> float:
     """The net position of one symbol for a smart order; raises when unreadable."""
     coin, info = _market(symbol, exchange)
     if info["is_spot"]:
         state = read_position_book(
-            "hyperliquid",
+            client.broker_name(),
             lambda: client.spot_clearinghouse_state(auth),
             lambda r: isinstance(r, dict) and isinstance(r.get("balances"), list),
         )
@@ -536,9 +544,11 @@ def _read_net(symbol: str, exchange: str, auth: str) -> float:
                 return _f(bal.get("total"))
         return 0.0
     positions = _position_cache.get(
-        auth,
+        _position_key(auth),
         lambda: read_position_book(
-            "hyperliquid", lambda: get_positions(auth, strict=True), lambda r: isinstance(r, list)
+            client.broker_name(),
+            lambda: get_positions(auth, strict=True),
+            lambda r: isinstance(r, list),
         ),
     )
     for p in positions:
@@ -580,5 +590,5 @@ def place_smartorder_api(data, auth):
         order["action"] = "BUY" if target > current else "SELL"
         order["quantity"] = str(abs(Decimal(str(target)) - Decimal(str(current))))
         result = place_order_api(order, auth)
-        _position_cache.invalidate(auth)
+        _position_cache.invalidate(_position_key(auth))
         return result
