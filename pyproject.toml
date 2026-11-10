@@ -173,6 +173,10 @@ dependencies = [
   "litellm==1.106.6",
   "agno==3.0.5",
   "ddgs>=9.16.0",
+  # Hyperliquid order signing (broker/hyperliquid/api/signing.py): keccak-256
+  # from pycryptodome, recoverable secp256k1 signatures from coincurve.
+  "pycryptodome==3.24.1",
+  "coincurve==21.0.0",
 ]
 
 [tool.uv]

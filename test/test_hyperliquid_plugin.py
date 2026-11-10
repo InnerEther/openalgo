@@ -5,7 +5,6 @@ import pandas as pd
 import pytest
 
 from broker.hyperliquid.api import data as hl_data
-from broker.hyperliquid.api import order_api
 from broker.hyperliquid.database import master_contract_db as mc
 from broker.hyperliquid.streaming.hyperliquid_adapter import HyperliquidWebSocketAdapter as Adapter
 
@@ -150,13 +149,3 @@ def test_history_pages_forward_and_returns_seconds(monkeypatch):
     assert calls[1][0] == calls[0][0] + 3 * 3_600_000
     assert df["volume"].iloc[0] == 0.25
     assert isinstance(df, pd.DataFrame)
-
-
-def test_orders_are_refused_before_reaching_hyperliquid(monkeypatch):
-    monkeypatch.setattr(order_api.client, "post_info", lambda *a, **k: pytest.fail("network"))
-    response, body, orderid = order_api.place_order_api({"symbol": "BTCUSDFUT"}, "0xabc")
-    assert response.status == 400 and orderid is None
-    assert "not available" in body["message"]
-    assert order_api.cancel_order("1", "0xabc")[1] == 400
-    assert order_api.modify_order({}, "0xabc")[1] == 400
-    assert order_api.close_all_positions("k", "0xabc")[1] == 400

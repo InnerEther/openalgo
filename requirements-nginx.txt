@@ -165,6 +165,9 @@ openscript==0.8.1
 litellm==1.106.6
 agno==3.0.5
 ddgs>=9.16.0
+# Hyperliquid order signing (broker/hyperliquid/api/signing.py): keccak and secp256k1.
+pycryptodome==3.24.1
+coincurve==21.0.0
 
 # Production WSGI stack. eventlet is pinned rather than floating: it is the
 # one dependency that exists only on this path, greenlet is pinned hard, and
