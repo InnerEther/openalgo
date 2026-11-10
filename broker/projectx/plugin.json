@@ -1,0 +1,11 @@
+{
+    "Plugin Name": "projectx",
+    "Plugin URI": "https://openalgo.in",
+    "Description": "ProjectX Gateway OpenAlgo Plugin (TopstepX and other ProjectX prop firms) - CME Group futures market data",
+    "Version": "1.0",
+    "Author": "InnerEther",
+    "Author URI": "https://github.com/InnerEther",
+    "supported_exchanges": ["CME"],
+    "broker_type": "IN_stock",
+    "leverage_config": false
+}
