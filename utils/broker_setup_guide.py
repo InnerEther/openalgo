@@ -473,10 +473,19 @@ GUIDES = {
                 "required": True,
                 "secret": False,
             },
+            {
+                "hint": "Only needed to place orders. The private key of an API wallet "
+                "you approve on Hyperliquid's API page: it can trade but cannot "
+                "withdraw. Leave empty to use Hyperliquid for charts only.",
+                "key": "api_secret",
+                "label": "Agent Key",
+                "required": False,
+                "secret": True,
+            },
         ),
         "banner": "Login with Hyperliquid signs you in with one click using the wallet "
-        "address you saved. Charts and market data need no key; orders are not "
-        "available for Hyperliquid yet.",
+        "address you saved. Charts and market data need no key; orders are signed "
+        "with the agent key, if you saved one.",
         "redirect_hint": "",
     },
     "ibulls": {

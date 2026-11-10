@@ -1,0 +1,422 @@
+{
+ "_note": "Signatures produced by hyperliquid-python-sdk 0.24.0 sign_l1_action for throwaway keys generated with random.seed(7); none of these keys holds funds.",
+ "cases": [
+  {
+   "key": "0xd23f0824128b2f330c5c7fd0a6a3a4506513270e269e0d37f2a74de452e6b438",
+   "address": "0x4a6c43fff4a913897ea826d53f7457236a7aa123",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 14,
+      "b": false,
+      "p": "57931",
+      "s": "0.53588",
+      "r": true,
+      "t": {
+       "limit": {
+        "tif": "Alo"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300953893,
+   "mainnet": false,
+   "sig": {
+    "r": "0x59ee686abf06eb4a33f3c2f0e34fd57c8494aca3170451296052875d8fe26eac",
+    "s": "0x5e96e0bd30fed882d450156526e942c16a14156355f7931fbed96aaabece2c82",
+    "v": 27
+   }
+  },
+  {
+   "key": "0x1e27a1c08a6a63ec24ede6a46b4cb2424a23d5962217beaddbc496cb8e81973e",
+   "address": "0x75b9e7cb6f5e6bd9decd91b0a97a760b1b3dc06d",
+   "action": {
+    "type": "batchModify",
+    "modifies": [
+     {
+      "oid": 337459504729,
+      "order": {
+       "a": 1,
+       "b": false,
+       "p": "2111.5",
+       "s": "1.25",
+       "r": false,
+       "t": {
+        "limit": {
+         "tif": "Gtc"
+        }
+       }
+      }
+     }
+    ]
+   },
+   "nonce": 1794300587472,
+   "mainnet": true,
+   "sig": {
+    "r": "0x4041eb7c3d13623c8fefff3c6126338bef998f50b43d1067b622607d5040575",
+    "s": "0x19c2f716370d67296310a016ddfd8b65720096f7cca1ac1de5d0a25d4b03120e",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x2e05319acb5c74273f98e2774cbd87ad5c90a9587403e430ec66a78795e761d1",
+   "address": "0x7f091d2f3cef5ad53451dea5a7b0204207d4b6b7",
+   "action": {
+    "type": "cancel",
+    "cancels": [
+     {
+      "a": 124,
+      "o": 631711757120
+     },
+     {
+      "a": 153,
+      "o": 543421581090
+     },
+     {
+      "a": 175,
+      "o": 492759215393
+     }
+    ]
+   },
+   "nonce": 1794300301924,
+   "mainnet": true,
+   "sig": {
+    "r": "0x30dd7157d3996f2731b9b08835596246652045a4fb3d6308cfbfc43f54666d5",
+    "s": "0x723aca179d2075819388e364856ebe812eec79431ef16870f97e4b1b2d3b19c2",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x17f5e837d70820fe119a72d174c9df6acc011cdd9474031b7f26144b98289fcd",
+   "address": "0xa41e6f1fc318f1534191dc2d5d2fb2eb059bc3d7",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 10107,
+      "b": true,
+      "p": "0.0045",
+      "s": "12.5",
+      "r": false,
+      "t": {
+       "trigger": {
+        "isMarket": true,
+        "triggerPx": "0.0044",
+        "tpsl": "sl"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300497128,
+   "mainnet": true,
+   "sig": {
+    "r": "0x5e19f539c5e6bd677f18422c0cb92431ceadd60766a2c15dc5766e681d0d6ecc",
+    "s": "0x5efb467fd9b79b417c810880acf66c0e95ecf62b6a9806b9c4d50566bf06511e",
+    "v": 28
+   }
+  },
+  {
+   "key": "0xdf1582b0eab477d26415479c65dc9f503f63af83bd0561e6211c70cf49952399",
+   "address": "0x1afdcff64c43dd00f584232a421af0c515632f18",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 102,
+      "b": false,
+      "p": "31805",
+      "s": "0.49651",
+      "r": true,
+      "t": {
+       "limit": {
+        "tif": "Ioc"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300576129,
+   "mainnet": true,
+   "sig": {
+    "r": "0xb645f9a8c408666eae26c889b5e6954d6953751450abf746ea0689cae74f8da6",
+    "s": "0x2be733a26943ce250a95383f76c596a600ad76be183284ce71184fa7c6554d34",
+    "v": 27
+   }
+  },
+  {
+   "key": "0xf3fe39c0519088f590fbbd119c1caaf75e8766ed88daf4016b4013ef254b0c4e",
+   "address": "0xd594153cbef23b336d7b6dbae1194970f155d616",
+   "action": {
+    "type": "batchModify",
+    "modifies": [
+     {
+      "oid": 756453226023,
+      "order": {
+       "a": 1,
+       "b": false,
+       "p": "2111.5",
+       "s": "1.25",
+       "r": false,
+       "t": {
+        "limit": {
+         "tif": "Gtc"
+        }
+       }
+      }
+     }
+    ]
+   },
+   "nonce": 1794300900938,
+   "mainnet": false,
+   "sig": {
+    "r": "0xd89dfd1bbf02af12af19d47c2e11e493e59ae022fbb547bcb5bca4194cac7e74",
+    "s": "0x3fa9c9b225b3d68bc0b919d95feda4f33a33b8314a6ff6203b4040a74c48998d",
+    "v": 27
+   }
+  },
+  {
+   "key": "0x000f49c81a358ca00d75985d99c94309570dc1951c2442f9298cb3a570ccec31",
+   "address": "0x0aacba4bacde5cff84ba5dca3862d7cfe55bc802",
+   "action": {
+    "type": "cancel",
+    "cancels": [
+     {
+      "a": 290,
+      "o": 589060197504
+     },
+     {
+      "a": 51,
+      "o": 403507662406
+     },
+     {
+      "a": 13,
+      "o": 958079710110
+     }
+    ]
+   },
+   "nonce": 1794300218054,
+   "mainnet": true,
+   "sig": {
+    "r": "0x258ee4e4ee6bec54705274a01ce8355d127a4c1c71b4cea7bbd93c7e2a8c6a",
+    "s": "0x2e41ec9f1c11be0ef6cace470be8b6e956452bddf85f7633bed79816c17ca52",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x05e999f3842e7fc229540a6eb12aa1f6d42fddbb7a86f7a243c71b9abd87a865",
+   "address": "0x4ef1cd414b51e2000e78ebc85013ae207491f47c",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 10107,
+      "b": true,
+      "p": "0.0045",
+      "s": "12.5",
+      "r": false,
+      "t": {
+       "trigger": {
+        "isMarket": true,
+        "triggerPx": "0.0044",
+        "tpsl": "tp"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300997180,
+   "mainnet": true,
+   "sig": {
+    "r": "0xd55d57455adde87854290480ee9392c4b8fa14c8564a5711283b004705b75f25",
+    "s": "0x7e068047e42d90f9282745da5206a0824bcfbba63db34dc52a27eaa0683d8614",
+    "v": 28
+   }
+  },
+  {
+   "key": "0xce5b2a9231f51707da45e18ac2216b02fc241d0bc9d488b1cfbf33609cfc8652",
+   "address": "0xebcdca703fc61d7174498a3eb9e1fd5dbb8b8eb0",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 58,
+      "b": false,
+      "p": "62518",
+      "s": "0.23939",
+      "r": true,
+      "t": {
+       "limit": {
+        "tif": "Alo"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300209629,
+   "mainnet": true,
+   "sig": {
+    "r": "0x8b7b62e06a003ec3ae3cbce141ed7b1900de0b315d589dfc9245dd3b4c23726a",
+    "s": "0x654381b6c2afb73ee89eb643578b048e22a1de2bd8590d02081788fe9c6f4faa",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x7abec539007d1034d726c86b9c3a23cde67a9b75fc3947249fc2d0a17b8f2ab5",
+   "address": "0x3b66d89de193d432cfebeb68f22c1a1dfb01ceab",
+   "action": {
+    "type": "batchModify",
+    "modifies": [
+     {
+      "oid": 721164519236,
+      "order": {
+       "a": 1,
+       "b": false,
+       "p": "2111.5",
+       "s": "1.25",
+       "r": false,
+       "t": {
+        "limit": {
+         "tif": "Gtc"
+        }
+       }
+      }
+     }
+    ]
+   },
+   "nonce": 1794300360717,
+   "mainnet": true,
+   "sig": {
+    "r": "0x7f7f28484c9ce054a2a86303a24b8000ef0b79ebb74db244fb9788315e743d41",
+    "s": "0x36413e183965d6f0e634498149e1cfbbe67c6cb057562efbe48b1f89bafbde4b",
+    "v": 27
+   }
+  },
+  {
+   "key": "0xfe3c9c8f2b855c1f28aaca51b98c67c215bd448ff26149edbe4c5ce666c1494e",
+   "address": "0xd6fa58ac3a07fb3314edad159042609a78cab9c5",
+   "action": {
+    "type": "cancel",
+    "cancels": [
+     {
+      "a": 65,
+      "o": 163327078666
+     },
+     {
+      "a": 238,
+      "o": 720723438069
+     },
+     {
+      "a": 74,
+      "o": 908864786928
+     }
+    ]
+   },
+   "nonce": 1794300624815,
+   "mainnet": false,
+   "sig": {
+    "r": "0x1f38028f60b60cbb9cff13ba6a0cc6a1da520343b32c3a645f0fb8ccf3cda12a",
+    "s": "0x2c0afd63c4d8e2ba5aaec3f41a438fba1f2bed78215a68daf49091b72fe3e933",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x4265bb31537409029620bf0dc38084a03d93fd4c804c25d64affdcd13678bc8d",
+   "address": "0x07adc5a6f6d50bca457c4ae19cea672205bf0c06",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 10107,
+      "b": true,
+      "p": "0.0045",
+      "s": "12.5",
+      "r": false,
+      "t": {
+       "trigger": {
+        "isMarket": true,
+        "triggerPx": "0.0044",
+        "tpsl": "sl"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300874716,
+   "mainnet": true,
+   "sig": {
+    "r": "0x6e68a66546bffa902f5461341511f01b459f974badb0cb35c57493cc54bf5cc1",
+    "s": "0x19657e77d5a838067fad9378c079753eecaab3a0fe2cc53396768fa01465bf2d",
+    "v": 28
+   }
+  },
+  {
+   "key": "0x8e752fdf1ece615db9a6442e9e7d6b377936d536243d35702c1eea1f265974a7",
+   "address": "0x10233abac4cd78b36ed78f66711664bf363ae1ed",
+   "action": {
+    "type": "order",
+    "orders": [
+     {
+      "a": 135,
+      "b": false,
+      "p": "99434",
+      "s": "0.06176",
+      "r": true,
+      "t": {
+       "limit": {
+        "tif": "Alo"
+       }
+      }
+     }
+    ],
+    "grouping": "na"
+   },
+   "nonce": 1794300582423,
+   "mainnet": true,
+   "sig": {
+    "r": "0x40fe06429e57b57d3885c743397c29dc2e4a3aadfd1b98b408e32d266101c57e",
+    "s": "0x1cd4e53f8cadf044d51ef18089b4e5fdfa7bb5a5fe462966c7cf6eeb72650b03",
+    "v": 27
+   }
+  },
+  {
+   "key": "0xb2fff17b3f665edef10637ce81fc069e7a609683ceaf4915888564e88216858f",
+   "address": "0x174fa384d5353c7a5049c84c88e440bd8754a39c",
+   "action": {
+    "type": "batchModify",
+    "modifies": [
+     {
+      "oid": 964319842652,
+      "order": {
+       "a": 1,
+       "b": false,
+       "p": "2111.5",
+       "s": "1.25",
+       "r": false,
+       "t": {
+        "limit": {
+         "tif": "Gtc"
+        }
+       }
+      }
+     }
+    ]
+   },
+   "nonce": 1794300918528,
+   "mainnet": true,
+   "sig": {
+    "r": "0x239acf7742dfca148ed7f2c4a6f90af0257bc28e208fff1410ca1824f109486c",
+    "s": "0x229284f773fb194a7716bf4084d5ae1b98c558f780c2946c0621c8b1869e0279",
+    "v": 28
+   }
+  }
+ ]
+}

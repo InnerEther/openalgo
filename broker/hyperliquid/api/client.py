@@ -43,6 +43,9 @@ _MAX_ATTEMPTS = 3
 # quote box, and it saves the IP budget for candles.
 _CONTEXT_CACHE = LockedTTLCache(maxsize=4, ttl=2.0)
 
+# Asset ids and size decimals change only when Hyperliquid lists a market.
+_ASSET_CACHE = LockedTTLCache(maxsize=2, ttl=600.0)
+
 
 class HyperliquidError(Exception):
     """A request Hyperliquid refused or could not answer."""
@@ -129,6 +132,44 @@ def asset_contexts() -> dict[str, dict]:
 
     _CONTEXT_CACHE["all"] = out
     return out
+
+
+def _load_assets() -> dict[str, dict]:
+    out: dict[str, dict] = {}
+    universe, _contexts = perp_meta_and_contexts()
+    for index, asset in enumerate(universe):
+        if isinstance(asset, dict) and asset.get("name"):
+            out[asset["name"]] = {
+                "asset": index,
+                "sz_decimals": int(asset.get("szDecimals") or 0),
+                "is_spot": False,
+            }
+    spot_meta, _spot_contexts = spot_meta_and_contexts()
+    tokens = {t.get("index"): t for t in spot_meta.get("tokens", []) if isinstance(t, dict)}
+    for pair in spot_meta.get("universe", []):
+        pair_tokens = (pair or {}).get("tokens") or []
+        base = tokens.get(pair_tokens[0]) if pair_tokens else None
+        if base and pair.get("name"):
+            out[pair["name"]] = {
+                "asset": SPOT_ASSET_OFFSET + int(pair.get("index", 0)),
+                "sz_decimals": int(base.get("szDecimals") or 0),
+                "is_spot": True,
+                "base": base.get("name", ""),
+            }
+    return out
+
+
+def asset_info(coin: str) -> dict | None:
+    """Order details of one coin: ``asset`` id, ``sz_decimals`` and ``is_spot``.
+
+    Reloaded once when a coin is missing, so a market listed since the last
+    load is found.
+    """
+    assets = _ASSET_CACHE.get("all")
+    if assets is None or coin not in assets:
+        assets = _load_assets()
+        _ASSET_CACHE["all"] = assets
+    return assets.get(coin)
 
 
 def l2_book(coin: str) -> dict:
