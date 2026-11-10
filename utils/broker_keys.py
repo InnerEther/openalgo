@@ -78,6 +78,7 @@ BROKER_NAMES = {
     "dhan": "Dhan",
     "deltaexchange": "Delta Exchange",
     "hyperliquid": "Hyperliquid",
+    "hyperliquid_testnet": "Hyperliquid Testnet",
     "indmoney": "IndMoney",
     "dhan_sandbox": "Dhan (Sandbox)",
     "definedge": "Definedge",

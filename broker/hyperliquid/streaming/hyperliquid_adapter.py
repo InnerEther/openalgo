@@ -22,6 +22,7 @@ import threading
 import time
 from typing import Any
 
+from broker.hyperliquid.api import client
 from broker.hyperliquid.streaming import hyperliquid_mapping as mapping
 from broker.hyperliquid.streaming.hyperliquid_websocket import HyperliquidWebSocket
 from database.token_db import get_br_symbol
@@ -51,7 +52,7 @@ class HyperliquidWebSocketAdapter(BaseBrokerWebSocketAdapter):
     def __init__(self):
         super().__init__()
         self.logger = get_logger("hyperliquid_websocket_adapter")
-        self.broker_name = "hyperliquid"
+        self.broker_name = client.broker_name()
         self.user_id = None
         self.ws_client: HyperliquidWebSocket | None = None
         self._lock = threading.Lock()

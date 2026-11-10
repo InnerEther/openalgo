@@ -22,6 +22,7 @@ from broker.hyperliquid.api.client import (
     is_testnet,
     post_info,
 )
+from broker.hyperliquid.network import broker_name
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -68,10 +69,7 @@ def authenticate_broker(code=None):
     if agent_error:
         return None, agent_error
 
-    logger.info(
-        "Hyperliquid login: wallet account read successfully on %s",
-        "testnet" if is_testnet() else "mainnet",
-    )
+    logger.info("%s login: wallet account read successfully", broker_name())
     return address, None
 
 
@@ -111,7 +109,7 @@ def check_agent_key(address: str, secret: str | None) -> str | None:
         # Testnet and mainnet keep separate API wallets, and a key approved on
         # one is unknown on the other: the likeliest slip when switching.
         message += (
-            " OpenAlgo is set to Hyperliquid's testnet, so the API wallet must be "
+            " This is the Hyperliquid Testnet broker, so the API wallet must be "
             "approved on the testnet site, app.hyperliquid-testnet.xyz."
         )
     return message

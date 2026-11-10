@@ -1,7 +1,7 @@
 """Low-level client for Hyperliquid's public WebSocket.
 
-Address: wss://api.hyperliquid.xyz/ws, or the testnet's when HYPERLIQUID_TESTNET
-is true (``client.ws_url``).
+Address: wss://api.hyperliquid.xyz/ws, or the testnet one for the Hyperliquid
+Testnet broker (``network.ws_url``).
 
 Protocol: JSON frames, no authentication for market data.
 

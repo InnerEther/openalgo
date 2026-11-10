@@ -23,10 +23,12 @@ live feed, your balance and positions, and orders.
 Symbols are on the `CRYPTO` exchange: perpetuals as `BTCUSDFUT`, spot pairs as
 `HYPEUSDC`. Hyperliquid serves only the latest 5000 candles of each interval.
 
-## Testnet
+## Hyperliquid Testnet
 
-Hyperliquid runs a separate test network with test funds. Its accounts, API
-wallets, markets and prices are separate from mainnet, and an order signed for
+Hyperliquid runs a separate test network with test funds. OpenAlgo lists it as
+its own broker, **Hyperliquid Testnet**, so the broker badge always says which
+network you are on and each keeps its own saved keys. Accounts, API wallets,
+markets and prices on testnet are separate from mainnet, and an order signed for
 one network is refused by the other.
 
 1. Open [app.hyperliquid-testnet.xyz](https://app.hyperliquid-testnet.xyz) and
@@ -38,20 +40,14 @@ one network is refused by the other.
    connect that instead.
 2. On the testnet site's API page, create and approve an API wallet, and copy
    its private key. A mainnet API wallet does not work on testnet.
-3. Add this line to `.env` and restart OpenAlgo:
+3. Open **Select Broker**, find **Hyperliquid Testnet** and choose
+   **Configure**. Save the wallet address and the testnet agent key.
+4. Choose **Login with Hyperliquid Testnet**. The testnet symbol list is
+   downloaded at login.
 
-   ```
-   HYPERLIQUID_TESTNET = 'true'
-   ```
+Switching between Hyperliquid and Hyperliquid Testnet is a broker switch like
+any other: it is confirmed on Select Broker and refused while Live automation
+runs on the broker you are leaving.
 
-4. On Broker Configuration, save the wallet address and the testnet agent key,
-   then log in to Hyperliquid again so the testnet symbol list is downloaded.
-
-To go back to mainnet, set `HYPERLIQUID_TESTNET = 'false'` (or remove the
-line), restart, save your mainnet agent key and log in again.
-
-## Optional `.env` settings
-
-| Setting | Default | When to change it |
-| --- | --- | --- |
-| `HYPERLIQUID_TESTNET` | `false` | Set to `true` to use Hyperliquid's testnet for data, account and orders |
+If your `.env` sets `VALID_BROKERS`, add `hyperliquid_testnet` to it and
+restart OpenAlgo, or the card does not appear.

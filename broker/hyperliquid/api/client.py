@@ -2,7 +2,7 @@
 
 Everything Hyperliquid serves for market data and for reading an account comes
 from one address, ``POST https://api.hyperliquid.xyz/info``
-(``api.hyperliquid-testnet.xyz`` when ``HYPERLIQUID_TESTNET`` is true), with a JSON body
+(``api.hyperliquid-testnet.xyz`` for the Hyperliquid Testnet broker), with a JSON body
 whose ``type`` names the request (``metaAndAssetCtxs``, ``l2Book``,
 ``candleSnapshot``, ``clearinghouseState`` and so on). None of it needs a key:
 reading an account only needs its public wallet address.
@@ -13,41 +13,25 @@ answer every quote, are cached for a moment so a burst of quote requests costs
 one call instead of one per symbol.
 """
 
-import os
 import time
 
 import httpx
 
+# Which network a call reaches is decided in broker/hyperliquid/network.py; the
+# names are re-exported here for the modules that already import ``client``.
+from broker.hyperliquid.network import (  # noqa: F401
+    MAINNET_URL,
+    TESTNET_URL,
+    base_url,
+    broker_name,
+    is_testnet,
+    ws_url,
+)
 from utils.httpx_client import get_httpx_client
 from utils.logging import get_logger
 from utils.thread_safe_cache import LockedTTLCache
 
 logger = get_logger(__name__)
-
-MAINNET_URL = "https://api.hyperliquid.xyz"
-TESTNET_URL = "https://api.hyperliquid-testnet.xyz"
-
-
-def is_testnet() -> bool:
-    """Whether ``HYPERLIQUID_TESTNET`` points this install at Hyperliquid's testnet.
-
-    Read on every call, like the broker keys, so nothing holds a stale answer.
-    Testnet has its own markets, accounts, API wallets and test funds, and
-    orders there are signed for testnet (``signing.sign_l1_action``), so a
-    signature made for one network is refused by the other.
-    """
-    return os.getenv("HYPERLIQUID_TESTNET", "false").strip().lower() in ("1", "true", "yes")
-
-
-def base_url() -> str:
-    """The REST origin of the network in use, without a trailing slash."""
-    return TESTNET_URL if is_testnet() else MAINNET_URL
-
-
-def ws_url() -> str:
-    """The WebSocket address of the network in use."""
-    return "wss://" + base_url().removeprefix("https://") + "/ws"
-
 
 #: Spot assets are numbered from 10000 in Hyperliquid's asset ids.
 SPOT_ASSET_OFFSET = 10000

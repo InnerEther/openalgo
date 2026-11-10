@@ -62,6 +62,7 @@ BROKERS = [
     "hdfcsecurities",
     "hdfcsky",
     "hyperliquid",
+    "hyperliquid_testnet",
     "ibulls",
     "iifl",
 ]

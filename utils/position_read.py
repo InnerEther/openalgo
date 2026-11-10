@@ -57,6 +57,7 @@ BROKER_DISPLAY_NAMES = {
     "hdfcsecurities": "HDFC Securities",
     "hdfcsky": "HDFC Sky",
     "hyperliquid": "Hyperliquid",
+    "hyperliquid_testnet": "Hyperliquid Testnet",
     "ibulls": "Ibulls",
     "iifl": "IIFL",
     "iiflcapital": "IIFL Capital",

@@ -756,10 +756,10 @@ def _broker_callback(broker, para=None):
         auth_token, error_message = auth_function(code)
         forward_url = "broker.html"
 
-    elif broker == "hyperliquid":
+    elif broker in ("hyperliquid", "hyperliquid_testnet"):
         # No login at Hyperliquid: the saved wallet address is checked once.
-        logger.debug("Hyperliquid broker - authentication initiated")
-        auth_token, error_message = auth_function("hyperliquid")
+        logger.debug("%s broker - authentication initiated", broker)
+        auth_token, error_message = auth_function(broker)
         forward_url = "broker.html"
 
     elif broker == "dhan_sandbox":

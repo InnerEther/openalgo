@@ -485,9 +485,36 @@ GUIDES = {
         ),
         "banner": "Login with Hyperliquid signs you in with one click using the wallet "
         "address you saved. Charts and market data need no key; orders are signed "
-        "with the agent key, if you saved one. To use Hyperliquid's testnet, set "
-        "HYPERLIQUID_TESTNET = 'true' in .env, restart OpenAlgo and save a testnet "
-        "API wallet's key.",
+        "with the agent key, if you saved one. To practise with test funds, use "
+        "Hyperliquid Testnet instead.",
+        "redirect_hint": "",
+    },
+    "hyperliquid_testnet": {
+        "name": "Hyperliquid Testnet",
+        "sign_in": "saved_keys",
+        "fields": (
+            {
+                "hint": "Your wallet address, starting with 0x: the one you connect on "
+                "app.hyperliquid-testnet.xyz. It is public and only lets OpenAlgo read "
+                "your testnet balance and positions.",
+                "key": "api_key",
+                "label": "Wallet Address",
+                "required": True,
+                "secret": False,
+            },
+            {
+                "hint": "Only needed to place orders. The private key of an API wallet "
+                "you approve on the testnet site's API page. A mainnet API wallet does "
+                "not work here. Leave empty for charts only.",
+                "key": "api_secret",
+                "label": "Testnet Agent Key",
+                "required": False,
+                "secret": True,
+            },
+        ),
+        "banner": "Hyperliquid's test network, with test funds from its faucet: nothing "
+        "here is real money. Markets, prices and accounts are separate from Hyperliquid "
+        "mainnet.",
         "redirect_hint": "",
     },
     "ibulls": {
