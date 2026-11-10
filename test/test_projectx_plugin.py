@@ -125,6 +125,28 @@ def test_a_refused_login_reads_as_a_sentence(transport, monkeypatch):
     assert "errorCode" not in error
 
 
+@pytest.mark.parametrize(
+    "code, words",
+    [
+        (3, "fresh API key"),
+        (7, "agreements"),
+        (9, "API subscription"),
+        (10, "turned off"),
+        (99, "refused"),
+    ],
+)
+def test_each_login_refusal_names_its_cause(transport, monkeypatch, code, words):
+    monkeypatch.setenv("BROKER_API_KEY", "u")
+    monkeypatch.setenv("BROKER_API_SECRET", "k")
+    transport(
+        lambda url, body: {"token": None, "success": False, "errorCode": code, "errorMessage": None}
+    )
+
+    token, error = auth_api.authenticate_broker()
+
+    assert token is None and words in error
+
+
 def test_login_without_saved_keys_sends_nothing(transport, monkeypatch):
     monkeypatch.delenv("BROKER_API_KEY", raising=False)
     monkeypatch.delenv("BROKER_API_SECRET", raising=False)

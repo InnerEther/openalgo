@@ -92,9 +92,10 @@ _GENERAL_WINDOW = _SlidingWindow(limit=180, window=60.0)
 class ProjectXError(Exception):
     """A ProjectX request that did not succeed, with a sentence a trader can read."""
 
-    def __init__(self, message: str, status_code: int = 500):
+    def __init__(self, message: str, status_code: int = 500, error_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
+        self.error_code = error_code
 
 
 def post(path: str, payload: dict, token: str | None = None, timeout: float = 30.0) -> dict:
@@ -150,6 +151,6 @@ def post(path: str, payload: dict, token: str | None = None, timeout: float = 30
         error_code = body.get("errorCode") if isinstance(body, dict) else None
         error_message = body.get("errorMessage") if isinstance(body, dict) else None
         logger.error(f"ProjectX {path} refused the request: errorCode={error_code} {error_message}")
-        raise ProjectXError(error_message or "ProjectX refused the request.", 400)
+        raise ProjectXError(error_message or "ProjectX refused the request.", 400, error_code)
 
     return body
