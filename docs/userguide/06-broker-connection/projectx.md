@@ -13,8 +13,17 @@ books stay empty. Trade on your firm's own platform.
 
 1. Your **ProjectX username**: the name you log in to TopstepX (or your firm's
    platform) with, not your email address.
-2. A **ProjectX API key**, generated on your firm's ProjectX dashboard. API
-   access is a paid add-on on most firms.
+2. A **ProjectX API key**. The option to create one appears only after API
+   access is set up, which is a paid add-on. On TopstepX:
+   1. Create an account at dashboard.projectx.com.
+   2. In that dashboard, subscribe under Subscriptions, ProjectX API Access
+      (Topstep offers a discount code; see its guide below).
+   3. In TopstepX, open Settings, API, and under ProjectX Linking choose
+      **Add Link**.
+   4. In the same tab choose **Add API Key** and copy the key.
+
+   Source: [TopstepX API access](https://help.topstep.com/en/articles/11187768-topstepx-api-access).
+   Other firms on ProjectX have their own steps.
 
 ## Connect
 
