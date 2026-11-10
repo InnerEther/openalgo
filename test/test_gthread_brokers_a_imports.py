@@ -61,6 +61,7 @@ BROKERS = [
     "groww",
     "hdfcsecurities",
     "hdfcsky",
+    "hyperliquid",
     "ibulls",
     "iifl",
 ]
