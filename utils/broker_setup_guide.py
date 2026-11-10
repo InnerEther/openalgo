@@ -461,6 +461,24 @@ GUIDES = {
         "and you are sent back to OpenAlgo.",
         "redirect_hint": "Register this exact address as the redirect URL in your broker app.",
     },
+    "hyperliquid": {
+        "name": "Hyperliquid",
+        "sign_in": "saved_keys",
+        "fields": (
+            {
+                "hint": "Your Hyperliquid wallet address, starting with 0x. It is public "
+                "and only lets OpenAlgo read your balance and positions.",
+                "key": "api_key",
+                "label": "Wallet Address",
+                "required": True,
+                "secret": False,
+            },
+        ),
+        "banner": "Login with Hyperliquid signs you in with one click using the wallet "
+        "address you saved. Charts and market data need no key; orders are not "
+        "available for Hyperliquid yet.",
+        "redirect_hint": "",
+    },
     "ibulls": {
         "name": "Ibulls",
         "sign_in": "saved_keys",

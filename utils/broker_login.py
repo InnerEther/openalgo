@@ -56,6 +56,7 @@ CALLBACK_START_BROKERS = frozenset(
         "mstock",
         "indmoney",
         "deltaexchange",
+        "hyperliquid",
         "jainamxts",
         "dhan_sandbox",
         "definedge",

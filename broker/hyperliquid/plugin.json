@@ -1,0 +1,11 @@
+{
+    "Plugin Name": "hyperliquid",
+    "Plugin URI": "https://openalgo.in",
+    "Description": "Hyperliquid OpenAlgo Plugin - Crypto perpetuals and spot (market data, read-only account)",
+    "Version": "1.0",
+    "Author": "OpenAlgo",
+    "Author URI": "https://openalgo.in",
+    "supported_exchanges": ["CRYPTO"],
+    "broker_type": "crypto",
+    "leverage_config": false
+}

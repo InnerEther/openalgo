@@ -77,6 +77,7 @@ BROKER_NAMES = {
     "compositedge": "CompositEdge",
     "dhan": "Dhan",
     "deltaexchange": "Delta Exchange",
+    "hyperliquid": "Hyperliquid",
     "indmoney": "IndMoney",
     "dhan_sandbox": "Dhan (Sandbox)",
     "definedge": "Definedge",
