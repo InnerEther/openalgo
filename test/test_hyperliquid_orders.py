@@ -138,10 +138,12 @@ class FakeHTTP:
     def __init__(self, answers):
         self.answers = list(answers)
         self.sent = []
+        self.urls = []
 
     def post(self, url, json=None, timeout=None):
-        assert url == exchange.EXCHANGE_URL, url
+        assert url.endswith("/exchange"), url
         assert timeout is not None
+        self.urls.append(url)
         self.sent.append(json)
         answer = self.answers.pop(0)
         if isinstance(answer, Exception):
@@ -155,13 +157,14 @@ def http(monkeypatch, market):
         fake = FakeHTTP(answers)
         monkeypatch.setattr(exchange, "get_httpx_client", lambda: fake)
         monkeypatch.setenv("BROKER_API_SECRET", key)
+        monkeypatch.delenv("HYPERLIQUID_TESTNET", raising=False)
         return fake
 
     return install
 
 
-def _signer(payload) -> str:
-    digest = signing.l1_digest(payload["action"], payload["nonce"])
+def _signer(payload, is_mainnet=True) -> str:
+    digest = signing.l1_digest(payload["action"], payload["nonce"], is_mainnet)
     sig = payload["signature"]
     raw = (
         int(sig["r"], 16).to_bytes(32, "big")
@@ -194,6 +197,63 @@ def test_an_order_is_signed_by_the_agent_and_sent_once(http):
     (payload,) = fake.sent
     assert payload["action"]["type"] == "order" and payload["vaultAddress"] is None
     assert _signer(payload) == AGENT
+    assert fake.urls == ["https://api.hyperliquid.xyz/exchange"]
+
+
+def test_the_testnet_switch_moves_every_address(monkeypatch):
+    monkeypatch.delenv("HYPERLIQUID_TESTNET", raising=False)
+    assert not client.is_testnet()
+    assert client.base_url() == "https://api.hyperliquid.xyz"
+    assert client.ws_url() == "wss://api.hyperliquid.xyz/ws"
+    for value in ("true", "TRUE", "1", "yes"):
+        monkeypatch.setenv("HYPERLIQUID_TESTNET", value)
+        assert client.is_testnet()
+    assert client.base_url() == "https://api.hyperliquid-testnet.xyz"
+    assert client.ws_url() == "wss://api.hyperliquid-testnet.xyz/ws"
+    monkeypatch.setenv("HYPERLIQUID_TESTNET", "false")
+    assert not client.is_testnet()
+
+
+def test_on_testnet_info_requests_go_to_testnet(monkeypatch):
+    monkeypatch.setenv("HYPERLIQUID_TESTNET", "true")
+    urls = []
+
+    class Info:
+        def post(self, url, json=None, timeout=None):
+            urls.append(url)
+            return httpx.Response(200, json={}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(client, "get_httpx_client", lambda: Info())
+    client.post_info({"type": "meta"})
+    assert urls == ["https://api.hyperliquid-testnet.xyz/info"]
+
+
+def test_on_testnet_an_order_is_signed_for_testnet_and_sent_there(http, monkeypatch):
+    fake = http(
+        {
+            "status": "ok",
+            "response": {"type": "order", "data": {"statuses": [{"resting": {"oid": 5}}]}},
+        }
+    )
+    monkeypatch.setenv("HYPERLIQUID_TESTNET", "true")
+    response, _body, oid = order_api.place_order_api(
+        {
+            "symbol": "BTCUSDFUT",
+            "exchange": "CRYPTO",
+            "action": "BUY",
+            "quantity": "0.01",
+            "pricetype": "LIMIT",
+            "price": "70000",
+        },
+        ACCOUNT,
+    )
+    assert (response.status, oid) == (200, "5")
+    assert fake.urls == ["https://api.hyperliquid-testnet.xyz/exchange"]
+    (payload,) = fake.sent
+    # Signed for testnet: the same signature read as a mainnet one names
+    # someone else, which is why each network refuses the other's orders.
+    assert _signer(payload, is_mainnet=False) == AGENT
+    assert _signer(payload, is_mainnet=True) != AGENT
 
 
 def test_hyperliquids_refusal_reaches_the_trader(http):
@@ -399,7 +459,11 @@ def test_the_login_checks_the_agent_key(monkeypatch):
     )
     assert "not approved" in auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
     monkeypatch.setattr(auth_api, "post_info", lambda body: {"role": "missing"})
-    assert "not approved" in auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
+    monkeypatch.delenv("HYPERLIQUID_TESTNET", raising=False)
+    message = auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
+    assert "not approved" in message and "testnet" not in message
+    monkeypatch.setenv("HYPERLIQUID_TESTNET", "true")
+    assert "app.hyperliquid-testnet.xyz" in auth_api.check_agent_key(ACCOUNT, AGENT_KEY)
 
 
 def test_decimal_wire_has_no_exponent():

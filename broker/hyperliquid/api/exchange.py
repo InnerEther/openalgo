@@ -20,13 +20,11 @@ import time
 import httpx
 
 from broker.hyperliquid.api import signing
-from broker.hyperliquid.api.client import BASE_URL
+from broker.hyperliquid.api.client import base_url, is_testnet
 from utils.httpx_client import get_httpx_client
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-EXCHANGE_URL = f"{BASE_URL}/exchange"
 
 NO_AGENT_KEY = (
     "No Hyperliquid agent key is saved, so OpenAlgo cannot place orders. Create an API "
@@ -101,13 +99,13 @@ def post_action(action: dict) -> dict:
     payload = {
         "action": action,
         "nonce": nonce,
-        "signature": signing.sign_l1_action(key, action, nonce),
+        "signature": signing.sign_l1_action(key, action, nonce, is_mainnet=not is_testnet()),
         "vaultAddress": None,
         "expiresAfter": None,
     }
     client = get_httpx_client()
     try:
-        response = client.post(EXCHANGE_URL, json=payload, timeout=15.0)
+        response = client.post(f"{base_url()}/exchange", json=payload, timeout=15.0)
     except Exception as exc:
         logger.exception("Hyperliquid %s request failed", action.get("type"))
         if isinstance(exc, (httpx.ConnectError, httpx.ConnectTimeout)):

@@ -485,7 +485,9 @@ GUIDES = {
         ),
         "banner": "Login with Hyperliquid signs you in with one click using the wallet "
         "address you saved. Charts and market data need no key; orders are signed "
-        "with the agent key, if you saved one.",
+        "with the agent key, if you saved one. To use Hyperliquid's testnet, set "
+        "HYPERLIQUID_TESTNET = 'true' in .env, restart OpenAlgo and save a testnet "
+        "API wallet's key.",
         "redirect_hint": "",
     },
     "ibulls": {

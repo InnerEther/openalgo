@@ -16,7 +16,12 @@ import os
 import re
 
 from broker.hyperliquid.api import signing
-from broker.hyperliquid.api.client import HyperliquidError, clearinghouse_state, post_info
+from broker.hyperliquid.api.client import (
+    HyperliquidError,
+    clearinghouse_state,
+    is_testnet,
+    post_info,
+)
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -63,7 +68,10 @@ def authenticate_broker(code=None):
     if agent_error:
         return None, agent_error
 
-    logger.info("Hyperliquid login: wallet account read successfully")
+    logger.info(
+        "Hyperliquid login: wallet account read successfully on %s",
+        "testnet" if is_testnet() else "mainnet",
+    )
     return address, None
 
 
@@ -94,8 +102,16 @@ def check_agent_key(address: str, secret: str | None) -> str | None:
     if role.get("role") == "agent" and master == address:
         return None
     logger.error("Hyperliquid agent %s has role %s for %s", agent, role, master or "nobody")
-    return (
+    message = (
         "The saved agent key is not approved for this Hyperliquid wallet. Approve the "
         "API wallet for this account on Hyperliquid's API page, or save the key of an "
         "API wallet that is approved for it."
     )
+    if is_testnet():
+        # Testnet and mainnet keep separate API wallets, and a key approved on
+        # one is unknown on the other: the likeliest slip when switching.
+        message += (
+            " OpenAlgo is set to Hyperliquid's testnet, so the API wallet must be "
+            "approved on the testnet site, app.hyperliquid-testnet.xyz."
+        )
+    return message

@@ -128,7 +128,8 @@ class BrokerData:
 
     def _day_range(self, coin: str) -> tuple[float, float]:
         """High and low of the last 24 hours, from hourly candles."""
-        cached = _DAY_RANGE_CACHE.get(coin)
+        key = (client.base_url(), coin)
+        cached = _DAY_RANGE_CACHE.get(key)
         if cached is not None:
             return cached
         now_ms = int(time.time() * 1000)
@@ -136,7 +137,7 @@ class BrokerData:
         highs = [_f(c.get("h")) for c in rows if isinstance(c, dict)]
         lows = [_f(c.get("l")) for c in rows if isinstance(c, dict)]
         result = (max(highs) if highs else 0.0, min(lows) if lows else 0.0)
-        _DAY_RANGE_CACHE[coin] = result
+        _DAY_RANGE_CACHE[key] = result
         return result
 
     def get_quotes(self, symbol: str, exchange: str) -> dict:
