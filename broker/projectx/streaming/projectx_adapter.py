@@ -19,7 +19,7 @@ import threading
 import time
 from typing import Any
 
-from broker.projectx.api.baseurl import rtc_url
+from broker.projectx.api.baseurl import contract_id_of, rtc_url
 from broker.projectx.streaming.projectx_signalr import SignalRHubClient
 from utils.logging import get_logger
 from websocket_proxy.base_adapter import BaseBrokerWebSocketAdapter
@@ -222,7 +222,9 @@ class ProjectxWebSocketAdapter(BaseBrokerWebSocketAdapter):
             return self._create_error_response(
                 "SYMBOL_NOT_FOUND", f"{symbol} not found for exchange {exchange}"
             )
-        contract = str(token_info["token"])
+        # A continuous alias (ES1!) and its contract (ESZ6) share one hub
+        # subscription: both resolve to the same ProjectX contract id.
+        contract = contract_id_of(token_info["token"])
         corr_id = f"{symbol}_{exchange}_{mode}"
 
         with self._lock:

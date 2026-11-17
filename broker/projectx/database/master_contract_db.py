@@ -17,6 +17,15 @@ Mapping onto SymToken:
     lotsize            1 (one contract)
     tick_size          tickSize
     instrumenttype     "FUT"
+
+Every product also gets continuous names in the style traders know from other
+charting platforms: ``ES1!`` is the nearest listed ES contract, ``ES2!`` the
+next one if ProjectX lists it. An alias row copies its contract's row, keeps
+the contract name in ``brsymbol`` and stores the contract id with ``#<n>``
+appended as its token (see ``baseurl.contract_id_of``). The alias follows the
+contract ProjectX lists, so it rolls when the contract list is downloaded
+again after ProjectX moves to the next month. Its history is that one
+contract's history: bars from before the roll are not stitched on.
 """
 
 import os
@@ -28,7 +37,13 @@ from sqlalchemy import Column, Float, Index, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from broker.projectx.api.baseurl import EXCHANGE, ProjectXError, post, use_live_data
+from broker.projectx.api.baseurl import (
+    ALIAS_TOKEN_SEPARATOR,
+    EXCHANGE,
+    ProjectXError,
+    post,
+    use_live_data,
+)
 from database.auth_db import Auth, get_auth_token
 from database.engine_factory import create_db_engine
 from extensions import socketio
@@ -57,6 +72,7 @@ _MONTH_CODES = {
     "X": "NOV",
     "Z": "DEC",
 }
+_MONTH_NUMBERS = {name: number for number, name in enumerate(_MONTH_CODES.values(), start=1)}
 _CONTRACT_NAME = re.compile(r"^(?P<root>[A-Z0-9]+?)(?P<month>[FGHJKMNQUVXZ])(?P<year>\d{1,2})$")
 
 
@@ -172,6 +188,7 @@ def contracts_to_dataframe(contracts: list[dict]) -> pd.DataFrame:
                 "tick_size": tick_size,
             }
         )
+    rows.extend(continuous_alias_rows(rows, contracts))
     return pd.DataFrame(
         rows,
         columns=[
@@ -188,6 +205,54 @@ def contracts_to_dataframe(contracts: list[dict]) -> pd.DataFrame:
             "tick_size",
         ],
     )
+
+
+def _expiry_order(expiry: str) -> tuple[int, int]:
+    """Sort key for an MMM-YY expiry; an unparsed one sorts last."""
+    month, _, year = (expiry or "").partition("-")
+    if month not in _MONTH_NUMBERS or not year.isdigit():
+        return (9999, 99)
+    return (int(year), _MONTH_NUMBERS[month])
+
+
+def continuous_alias_rows(rows: list[dict], contracts: list[dict]) -> list[dict]:
+    """``ROOT1!``, ``ROOT2!``... rows for the contract rows of each product.
+
+    Contracts ProjectX marks inactive (``activeContract`` false) are numbered
+    only when a product has no active one, so ``ES1!`` is always the contract
+    TopstepX trades. Within a product they are numbered by expiry, nearest
+    first.
+    """
+    active = {
+        str(contract.get("id")): contract.get("activeContract", True) is not False
+        for contract in contracts
+        if contract.get("id")
+    }
+    by_root: dict[str, list[dict]] = {}
+    for row in rows:
+        if not row["expiry"]:
+            continue  # a name that did not parse has no month to order by
+        by_root.setdefault(row["name"], []).append(row)
+
+    aliases = []
+    taken = {row["symbol"] for row in rows}
+    for root, members in by_root.items():
+        listed = [row for row in members if active.get(row["token"], True)] or members
+        listed.sort(key=lambda row: (_expiry_order(row["expiry"]), row["symbol"]))
+        for position, row in enumerate(listed, start=1):
+            alias = f"{root}{position}!"
+            if alias in taken:
+                continue
+            taken.add(alias)
+            aliases.append(
+                {
+                    **row,
+                    "symbol": alias,
+                    "brsymbol": row["symbol"],
+                    "token": f"{row['token']}{ALIAS_TOKEN_SEPARATOR}{position}",
+                }
+            )
+    return aliases
 
 
 def fetch_contracts(token: str) -> list[dict]:

@@ -18,7 +18,7 @@ from datetime import UTC, date, datetime, time, timedelta, timezone
 import pandas as pd
 import pytz
 
-from broker.projectx.api.baseurl import ProjectXError, post, use_live_data
+from broker.projectx.api.baseurl import ProjectXError, contract_id_of, post, use_live_data
 from database.token_db import get_token
 from utils.logging import get_logger
 from utils.thread_safe_cache import LockedTTLCache
@@ -124,7 +124,7 @@ class BrokerData:
                 "list again, or pick the contract from symbol search.",
                 404,
             )
-        return contract_id
+        return contract_id_of(contract_id)
 
     def _retrieve_bars(
         self,

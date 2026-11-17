@@ -42,9 +42,23 @@ If you keep keys in `.env` instead, set `BROKER_API_KEY` to the username,
 
 Every ProjectX contract is on the exchange **`CME`** (CME Group: CME, CBOT,
 NYMEX and COMEX contracts alike), and its symbol is the contract name ProjectX
-uses, for example `ESZ5`, `MNQZ5` or `GCG6`. ProjectX lists the current
-contract of each product, so the symbols change when a contract rolls. Search
-by the product (`ES`, `NQ`, `CL`) in the chart's symbol search to find it.
+uses, for example `ESZ6`, `MNQZ6` or `GCG7`.
+
+Each product also has a **continuous name**: the product followed by `1!`, such
+as `ES1!`, `MNQ1!`, `GC1!`, `M6E1!` or `MBT1!`. It always points at the contract
+ProjectX currently lists for that product (`ES2!` the next one, when ProjectX
+lists two), so a chart, watchlist or alert saved on `ES1!` keeps working after
+a roll. Type the product (`ES`, `NQ`, `GC`) or the continuous name in the
+chart's symbol search to find both.
+
+- The continuous name moves to the new contract when the contract list is
+  downloaded again: at the first ProjectX login of each day, or at once with
+  **Force Download** on the Master Contract page (profile menu).
+- Its history is the history of the contract it points at now. Bars from the
+  contract before the roll are not joined on, so a long daily chart starts
+  where the current contract began trading.
+- The symbols come from ProjectX's own list. TopstepX lists Micro Bitcoin
+  (`MBT1!`) and Micro Ether (`MET1!`), not the full-size Bitcoin contract.
 
 ## Good to know
 

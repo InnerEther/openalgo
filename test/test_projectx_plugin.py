@@ -215,13 +215,54 @@ def test_contracts_become_symtoken_rows():
 
     df = px_master.contracts_to_dataframe(contracts)
 
-    assert list(df["symbol"]) == ["ESZ5", "MNQZ5"]
+    assert list(df["symbol"]) == ["ESZ5", "MNQZ5", "ES1!", "MNQ1!"]
     row = df.iloc[0].to_dict()
     assert row["token"] == "CON.F.US.EP.Z25"
     assert row["name"] == "ES"
     assert row["exchange"] == "CME" and row["brexchange"] == "CME"
     assert row["instrumenttype"] == "FUT"
     assert row["tick_size"] == 0.25 and row["lotsize"] == 1
+
+
+def test_every_product_gets_a_continuous_name_for_its_front_contract():
+    contracts = [
+        {"id": "CON.F.US.EP.H27", "name": "ESH27", "tickSize": 0.25},
+        {"id": "CON.F.US.EP.Z26", "name": "ESZ26", "tickSize": 0.25},
+        {"id": "CON.F.US.GCE.Z26", "name": "GCZ26", "tickSize": 0.1, "activeContract": False},
+        {"id": "CON.F.US.GCE.G27", "name": "GCG27", "tickSize": 0.1, "activeContract": True},
+        {"id": "CON.F.US.MBT.X26", "name": "MBTX26", "tickSize": 5},
+        {"id": "CON.F.US.ODD", "name": "ODDNAME"},
+    ]
+
+    df = px_master.contracts_to_dataframe(contracts)
+    rows = {row["symbol"]: row for row in df.to_dict(orient="records")}
+
+    # Nearest expiry first; an inactive contract is not numbered while an
+    # active one exists; a name with no month gets no alias.
+    assert rows["ES1!"]["brsymbol"] == "ESZ26"
+    assert rows["ES2!"]["brsymbol"] == "ESH27"
+    assert rows["GC1!"]["brsymbol"] == "GCG27" and "GC2!" not in rows
+    assert rows["MBT1!"]["brsymbol"] == "MBTX26"
+    assert not any(symbol.startswith("ODD") and symbol.endswith("!") for symbol in rows)
+
+    alias = rows["ES1!"]
+    assert alias["token"] == "CON.F.US.EP.Z26#1"
+    assert alias["name"] == "ES" and alias["expiry"] == "DEC-26"
+    assert alias["exchange"] == "CME" and alias["tick_size"] == 0.25
+    # Every row keeps a token of its own, so neither hides the other in the
+    # symbol cache, and the alias still names its contract for ProjectX.
+    assert df["token"].is_unique
+    assert baseurl.contract_id_of(alias["token"]) == "CON.F.US.EP.Z26"
+    assert baseurl.contract_id_of("CON.F.US.EP.Z26") == "CON.F.US.EP.Z26"
+
+
+def test_a_continuous_name_reads_its_contracts_history(transport, monkeypatch):
+    monkeypatch.setattr(px_data, "get_token", lambda symbol, exchange: "CON.F.US.EP.Z26#1")
+    sent = transport(lambda url, body: {"bars": [], "success": True})
+
+    px_data.BrokerData("jwt").get_history("ES1!", "CME", "5m", "2026-11-16", "2026-11-17")
+
+    assert sent.sent and all(r.json["contractId"] == "CON.F.US.EP.Z26" for r in sent.sent)
 
 
 def test_the_contract_list_falls_back_to_sim_data(transport, monkeypatch):
@@ -444,6 +485,22 @@ def test_one_hub_subscription_serves_every_mode_of_a_contract(adapter):
         ("UnsubscribeContractQuotes", "CON.ESZ5"),
     ]
     assert adapter._states == {}
+
+
+def test_a_continuous_name_shares_its_contracts_hub_subscription(adapter, monkeypatch):
+    tokens = {"ES1!": "CON.F.US.EP.Z26#1", "ESZ6": "CON.F.US.EP.Z26"}
+    monkeypatch.setattr(
+        px_adapter.SymbolMapper,
+        "get_token_from_symbol",
+        staticmethod(lambda symbol, exchange: {"token": tokens[symbol], "brexchange": "CME"}),
+    )
+    adapter.subscribe("ES1!", "CME", 1)
+    adapter.subscribe("ESZ6", "CME", 1)
+    adapter._on_event("GatewayQuote", ["CON.F.US.EP.Z26", {"lastPrice": 6800.25}])
+
+    assert adapter.hub.sent == [("SubscribeContractQuotes", "CON.F.US.EP.Z26")]
+    topics = sorted(topic for topic, _ in adapter.published)
+    assert topics == ["CME_ES1!_LTP", "CME_ESZ6_LTP"]
 
 
 def test_partial_quotes_merge_and_publish_on_openalgo_topics(adapter):
