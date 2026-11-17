@@ -32,6 +32,22 @@ DEFAULT_RTC_URL = "https://rtc.topstepx.com"
 #: contract, so they share one code.
 EXCHANGE = "CME"
 
+#: Separates a ProjectX contract id from the position of a continuous alias in
+#: a SymToken token. ``ES1!`` is stored with the token ``CON.F.US.EP.Z26#1``:
+#: the symbol cache indexes rows by token, so the alias cannot share its
+#: contract's token without hiding one of the two from symbol search.
+ALIAS_TOKEN_SEPARATOR = "#"
+
+
+def contract_id_of(token) -> str:
+    """The ProjectX contract id a SymToken token names.
+
+    A contract's own row stores the id as it is; a continuous alias row stores
+    it with ``#<n>`` appended, which ProjectX must never see.
+    """
+    return str(token or "").split(ALIAS_TOKEN_SEPARATOR, 1)[0]
+
+
 #: The sentence a trader reads when ProjectX refuses the stored session.
 SESSION_EXPIRED = "Your ProjectX session has ended. Log in to ProjectX again from Select Broker."
 
